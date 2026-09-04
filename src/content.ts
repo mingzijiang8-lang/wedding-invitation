@@ -20,28 +20,30 @@ export const paper = {
 }
 
 export const couple = {
-  groom: '林屿',
-  bride: '沈苒',
-  groomEn: 'Lin Yu',
-  brideEn: 'Shen Ran',
+  groom: '林鸿杰',
+  bride: '丛颖',
+  groomEn: 'Lin Hongjie',
+  brideEn: 'Cong Ying',
 }
 
 export const wedding = {
-  /** ISO 日期时间，用于倒计时、日历 */
-  start: '2026-10-24T11:58:00+08:00',
-  end: '2026-10-24T15:00:00+08:00',
-  dateLabel: '二〇二六年十月二十四日',
-  weekday: '星期六',
-  timeLabel: '上午 11 时 58 分 恭候 · 12 时 18 分 开席',
-  lunar: '农历九月十四',
-  venue: '漳州 · 酒店名待定 · 宴会厅',
-  address: '福建省漳州市芗城区（地址待补）',
+  /** ISO 日期时间，用于倒计时、日历。晚宴约 19:00 开始，仪式 19:10–19:40 */
+  start: '2026-10-06T19:00:00+08:00',
+  end: '2026-10-06T22:00:00+08:00',
+  dateLabel: '二〇二六年十月六日',
+  weekday: '星期二 · 国庆假期',
+  timeLabel: '下午 5 时起迎宾 · 晚 7 时 开席',
+  /** 农历日期请核对一次 */
+  lunar: '农历八月廿六',
+  venue: '漳浦金士顿酒店 · 国际厅',
+  address: '福建省漳州市漳浦县 金士顿酒店',
+  /** 地图上的婚礼城市，需与 journey.cities 里某一站同名 */
   city: '漳州',
-  /** 高德坐标（GCJ-02）。在 https://lbs.amap.com/tools/picker 取点，目前是漳州市中心 */
-  lng: 117.6472,
-  lat: 24.5133,
-  dressCode: '着装不必拘谨，浅色或大地色系为佳',
-  parking: '宾馆内设停车场，凭喜帖免费停车',
+  /** 高德坐标（GCJ-02）。目前是漳浦县城的大致位置，请在 https://lbs.amap.com/tools/picker 搜"漳浦金士顿酒店"取精确点 */
+  lng: 117.6136,
+  lat: 24.1175,
+  dressCode: '轻松自然即可，深色系或花园感着装尤佳',
+  parking: '酒店设有停车场（细节待补）',
   contactGroom: '138 0000 0000',
   contactBride: '139 0000 0000',
 }
@@ -49,8 +51,8 @@ export const wedding = {
 export const frontPage = {
   kicker: '本报讯',
   headline: '两位青年宣布结为夫妻',
-  subhead: '相识七年，历经三城两地，终于在秋天把日子定下来了',
-  deck: `据本报记者了解，${couple.groom}与${couple.bride}将于${wedding.dateLabel}在${wedding.city}举行婚礼。两人在一场并不起眼的聚会上相识，此后的故事，请见第二版专访。`,
+  subhead: '十月六日傍晚，漳浦金士顿酒店，一场轻松自然的婚礼，请你来',
+  deck: `据本报记者了解，${couple.groom}与${couple.bride}将于${wedding.dateLabel}在${wedding.city}漳浦举行婚礼，当晚七时开席。两人的故事，请见第二版专访。`,
   /** 头版主图，放在 public/photos/ 下。留空字符串时显示两位像素当事人的占位合影 */
   photo: '/photos/zhangzhou-03.jpg',
   photoCaption: '两位当事人于本刊拍摄现场。',
@@ -238,6 +240,11 @@ export const guide = {
   sections: [
     { label: '时间', value: `${wedding.dateLabel}（${wedding.weekday}）`, sub: wedding.timeLabel },
     { label: '地点', value: wedding.venue, sub: wedding.address },
+    {
+      label: '当晚',
+      value: '17:00 迎宾合影 · 19:00 落座 · 19:10 仪式',
+      sub: '19:40 开席 · 20:00 起逐桌敬酒 · 21:10 抽奖互动',
+    },
     { label: '着装', value: wedding.dressCode },
     { label: '停车', value: wedding.parking },
   ],
@@ -248,7 +255,7 @@ export const closing = {
   body: [
     '这份报纸没有广告，也没有社会新闻，只登了一件事：我们要结婚了。',
     '很多年前我们各自经历的事，好像都是为了在那个聚会上恰好坐得近一点。感谢在场的每一位，感谢你们在我们人生里出现过、还没有走开。',
-    '十月二十四日，请来喝一杯。',
+    '十月六日晚上，请来喝一杯。',
   ],
   sign: `${couple.groom} & ${couple.bride}`,
   replyTitle: '回复本报',
