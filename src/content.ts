@@ -107,13 +107,15 @@ export type City = {
   date: string
   title: string
   text: string
-  /** 放在 public/photos/ 下，任意 jpg/png，页面会自动像素化，点击可看原图 */
+  /** 放在 public/photos/ 下，任意 jpg/png；到站后在相册页里左右翻页，点击看大图 */
   photos?: string[]
+  /** 与 photos 一一对应的短说明，可少于照片数，缺的那张只显示页码 */
+  photoCaptions?: string[]
 }
 
 export const journey = {
   title: '足迹',
-  intro: '本报整理了两人这些年一起去过的地方。点击任一城市，两位当事人会从所在之处走过去，届时可读到当地的简讯与照片。',
+  intro: '本报整理了两人这些年一起去过的地方。点击任一城市，两位当事人会从所在之处走过去；到站后翻开那一页，读当地的简讯、看照片，看完再回到地图出发。',
   /**
    * 城市不分先后，两人一开始站在婚礼城市（名字与 wedding.city 相同的那一站），点哪里就从当前位置走过去。
    * 想加多少城市都可以。下面的日期和文字都是占位，等你补真实内容；照片放进 public/photos/ 后把路径填到 photos 里。
@@ -224,7 +226,8 @@ export const journey = {
       label: 'bottom',
       date: wedding.dateLabel,
       title: '婚礼',
-      text: `${wedding.venue}。故事在这里停一下，请见第四版赴宴指南。`,
+      text: `走了这么多地方，最后回到这里。${wedding.dateLabel}晚上，${wedding.venue}，两人的故事在此停一下，等你来续。赴宴细节请见第四版。`,
+      photoCaptions: ['潮水退去之前。', '先别松手。', '同一片天空下。', '等花开的那一刻。'],
       photos: [
         '/photos/zhangzhou-01.jpg',
         '/photos/zhangzhou-02.jpg',
