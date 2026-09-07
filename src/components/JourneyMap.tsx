@@ -441,6 +441,7 @@ export function JourneyMap() {
             <CityAlbum
               key={active}
               city={city}
+              stop={active + 1}
               visited={visited.size}
               total={cities.length}
               lightboxOpen={lightbox !== null}
