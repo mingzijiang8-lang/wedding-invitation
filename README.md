@@ -84,14 +84,21 @@ node scripts/build-china-bitmap.mjs /tmp/china.json /tmp/world.json
 
 ## 换一台相机（足迹页的机背照片）
 
-`public/camera-back.webp` 是 Unsplash 上的一张机背实拍（[Unsplash License](https://unsplash.com/license)，可自由使用），用脚本抠掉背景、逆时针转成竖持姿态：
+`public/camera-back.webp` 是 Unsplash 上的一张 Nikon 机背实拍（[Unsplash License](https://unsplash.com/license)，可自由使用），保留深色棚拍背景，裁成 11:16 后逆时针转 90° 变成竖持姿态：
 
 ```bash
-node scripts/cutout-camera.mjs 原图.jpg public/camera-back.png 72   # 最后一个参数是背景亮度阈值
-cwebp -q 82 -alpha_q 90 public/camera-back.png -o public/camera-back.webp
+sips -c 1056 1536 --cropOffset 384 456 原图.jpg --out crop.jpg   # 高 宽 / 上偏移 左偏移，按图调整
+sips -r 270 crop.jpg
+cwebp -q 80 crop.jpg -o public/camera-back.webp
 ```
 
-换图后要在 `src/components/CameraBack.tsx` 里重新量 `LCD`（屏幕区的百分比位置）和 `KEYS`（各按键中心点）。
+换图后在 `src/components/CameraBack.tsx` 里重新量 `LCD`（屏幕区的百分比位置）和 `KEYS`（各按键中心点），然后跑一次校准脚本，会把这些坐标画在图上输出到 `shots/camera-calibrate.png`，对不上就改数字再跑：
+
+```bash
+node scripts/calibrate-camera.mjs
+```
+
+如果换的图背景杂乱，`scripts/cutout-camera.mjs` 可以按亮度阈值抠掉背景（输出带透明通道的 PNG）。
 
 ## 本地截图检查
 

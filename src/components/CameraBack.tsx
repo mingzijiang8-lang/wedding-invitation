@@ -11,21 +11,22 @@ type Props = {
   onOpen: (index: number) => void
 }
 
-/** 机背照片里 LCD 显示区的位置（相对图片的百分比），换图片时用 scripts/cutout-camera.mjs 重新量 */
-const LCD = { left: 27, top: 30.5, width: 69.5, height: 58.5 }
+/** 机背照片里 LCD 显示区的位置（相对图片的百分比）。换图后跑 scripts/calibrate-camera.mjs 对一下 */
+const LCD = { left: 35.7, top: 39.2, width: 48.3, height: 43 }
 /** 各实体按键在图片上的中心点（百分比） */
 const KEYS = {
-  up: { x: 67.5, y: 10.2 },
-  down: { x: 67.5, y: 20.3 },
-  left: { x: 59.3, y: 15.2 },
-  right: { x: 75.8, y: 15.2 },
-  set: { x: 67.5, y: 15.2 },
-  play: { x: 50.8, y: 9.6 },
-  disp: { x: 85.8, y: 9.6 },
+  up: { x: 45.6, y: 21.6 },
+  down: { x: 45.6, y: 31.1 },
+  left: { x: 38.7, y: 26.4 },
+  right: { x: 52.5, y: 26.4 },
+  set: { x: 45.6, y: 26.4 },
+  play: { x: 13, y: 90.7 },
+  ok: { x: 70.9, y: 91.6 },
+  info: { x: 64.4, y: 23.7 },
 }
 
 /**
- * 记者的相机（实拍机背，竖持）。照片在 LCD 里回放，拨盘上下翻，SET / ▶ 看大图。
+ * 记者的相机（实拍机背，竖持）。照片在 LCD 里回放，多重选择器上下翻，OK / ▶ 看大图。
  */
 export function CameraBack({ city, stop, interval = 4200, paused = false, onOpen }: Props) {
   const photos = city.photos ?? []
@@ -73,17 +74,13 @@ export function CameraBack({ city, stop, interval = 4200, paused = false, onOpen
   const dateShort = city.date.replace(/[（）()]/g, '')
 
   return (
-    <div className="[perspective:1300px]">
-      <motion.div
-        className="relative mx-auto w-[86%]"
-        style={{ rotateY: -7, rotateX: 3, transformOrigin: '50% 50%' }}
-      >
-        <img
-          src="/camera-back.webp"
-          alt=""
-          draggable={false}
-          className="block w-full select-none [filter:drop-shadow(0_28px_26px_rgba(43,42,39,0.42))_drop-shadow(0_4px_6px_rgba(43,42,39,0.35))]"
-        />
+    <div>
+      <div className="relative w-full overflow-hidden bg-[#1a1a1c]">
+        <img src="/camera-back.webp" alt="" draggable={false} className="block w-full select-none" />
+        {/* 上下边缘压暗一点，让照片块和纸面衔接自然 */}
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.35),rgba(0,0,0,0)_12%,rgba(0,0,0,0)_88%,rgba(0,0,0,0.4))]" />
+        {/* 盖住机身上的品牌字 */}
+        <div className="absolute rounded-[2px] bg-[#232325]" style={{ left: '31.6%', top: '72.4%', width: '5%', height: '8%' }} />
 
         {/* LCD 显示区 */}
         <motion.div
@@ -123,7 +120,7 @@ export function CameraBack({ city, stop, interval = 4200, paused = false, onOpen
           </AnimatePresence>
 
           {/* 屏幕玻璃反光 */}
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.09)_0%,rgba(255,255,255,0.02)_35%,rgba(255,255,255,0)_60%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.10)_0%,rgba(255,255,255,0.02)_35%,rgba(255,255,255,0)_60%)]" />
 
           {/* 回放信息层 */}
           <div className="pointer-events-none absolute inset-0 font-mono text-[7.5px] tracking-[0.15em] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.9)]">
@@ -172,14 +169,15 @@ export function CameraBack({ city, stop, interval = 4200, paused = false, onOpen
         <HotKey at={KEYS.down} label="下一张" onClick={() => press(1)} />
         <HotKey at={KEYS.left} label="上一张" onClick={() => press(-1)} />
         <HotKey at={KEYS.right} label="下一张" onClick={() => press(1)} />
-        <HotKey at={KEYS.set} label="看大图" onClick={open} size={5.5} />
+        <HotKey at={KEYS.set} label="看大图" onClick={open} size={5} />
         <HotKey at={KEYS.play} label="看大图" onClick={open} />
-        <HotKey at={KEYS.disp} label="信息" onClick={rest} />
-      </motion.div>
+        <HotKey at={KEYS.ok} label="看大图" onClick={open} />
+        <HotKey at={KEYS.info} label="信息" onClick={rest} size={6} />
+      </div>
 
-      <div className="mt-5 flex items-center justify-between px-3 font-mono text-[7px] tracking-[0.3em] text-ink-faint">
+      <div className="flex items-center justify-between px-3 py-2 font-mono text-[7px] tracking-[0.3em] text-ink-faint">
         <span>PRESS · 本报记者用机 · No.{String(stop).padStart(3, '0')}</span>
-        <span>{n > 1 ? '拨盘翻看 · SET 放大' : n === 1 ? 'SET 放大' : 'NO CARD'}</span>
+        <span>{n > 1 ? '拨盘 ▲▼ 翻看 · OK 放大' : n === 1 ? 'OK 放大' : 'NO CARD'}</span>
       </div>
     </div>
   )
@@ -189,7 +187,7 @@ function HotKey({
   at,
   label,
   onClick,
-  size = 7.5,
+  size = 8,
 }: {
   at: { x: number; y: number }
   label: string
@@ -201,7 +199,7 @@ function HotKey({
       type="button"
       aria-label={label}
       onClick={onClick}
-      whileTap={{ scale: 0.9, backgroundColor: 'rgba(255,255,255,0.18)' }}
+      whileTap={{ scale: 0.92, backgroundColor: 'rgba(255,255,255,0.22)' }}
       className="absolute rounded-full bg-transparent"
       style={{ left: `${at.x}%`, top: `${at.y}%`, width: `${size}%`, aspectRatio: '1', x: '-50%', y: '-50%' }}
     />

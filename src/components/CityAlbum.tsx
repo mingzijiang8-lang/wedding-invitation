@@ -5,38 +5,26 @@ import { CameraBack } from './CameraBack'
 type Props = {
   city: City
   stop: number
-  visited: number
-  total: number
   lightboxOpen: boolean
-  onBack: () => void
   onOpen: (index: number) => void
 }
 
 const ease = [0.22, 1, 0.36, 1] as const
 
-/** 到站后盖在地图位置上的一页：记者的相机（照片在里面回放）+ 这一站的一段故事 */
-export function CityAlbum({ city, stop, visited, total, lightboxOpen, onBack, onOpen }: Props) {
+/** 到站后盖在地图位置上的内容：记者的相机（照片在里面回放）+ 这一站的一段故事 */
+export function CityAlbum({ city, stop, lightboxOpen, onOpen }: Props) {
   return (
-    <motion.article
-      initial={{ opacity: 0, rotateY: 55, x: 24 }}
+    <motion.div
+      initial={{ opacity: 0, rotateY: 40, x: 20 }}
       animate={{ opacity: 1, rotateY: 0, x: 0 }}
-      exit={{ opacity: 0, rotateY: 55, x: 24 }}
-      transition={{ duration: 0.5, ease }}
+      exit={{ opacity: 0, rotateY: 40, x: 20 }}
+      transition={{ duration: 0.45, ease }}
       style={{ transformOrigin: 'left center' }}
-      className="border border-ink bg-paper"
+      className="bg-paper"
     >
-      <div className="flex items-baseline justify-between border-b border-rule px-3 py-2">
-        <span className="font-mono text-[9px] tracking-[0.25em] text-accent">{city.date}</span>
-        <span className="font-mono text-[9px] tracking-[0.25em] text-ink-faint">
-          已到访 {visited} / {total}
-        </span>
-      </div>
+      <CameraBack city={city} stop={stop} paused={lightboxOpen} onOpen={onOpen} />
 
-      <div className="relative border-b border-rule bg-paper-deep/70 px-4 pt-5 pb-6">
-        <CameraBack city={city} stop={stop} paused={lightboxOpen} onOpen={onOpen} />
-      </div>
-
-      <div className="px-4 pt-4">
+      <div className="border-t border-rule px-4 pt-4 pb-5">
         <h3 className="font-serif text-[22px] leading-tight font-semibold tracking-[0.08em]">
           {city.name}
           {city.title && city.title !== city.name && (
@@ -47,15 +35,6 @@ export function CityAlbum({ city, stop, visited, total, lightboxOpen, onBack, on
         </h3>
         <p className="mt-2.5 font-serif text-[13px] leading-[1.9] text-ink-soft">{city.text}</p>
       </div>
-
-      <button
-        type="button"
-        onClick={onBack}
-        className="mt-4 flex w-full items-center justify-between border-t border-ink px-3 py-2.5 font-serif text-[12px] tracking-[0.15em] active:bg-paper-deep"
-      >
-        <span>← 回到地图，去下一站</span>
-        <span className="font-mono text-[9px] tracking-[0.2em] text-ink-faint">还有 {total - visited} 站</span>
-      </button>
-    </motion.article>
+    </motion.div>
   )
 }

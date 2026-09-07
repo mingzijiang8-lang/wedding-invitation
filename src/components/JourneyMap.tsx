@@ -139,6 +139,17 @@ export function JourneyMap() {
   /** map：看地图选目的地；album：到站后相册页盖住地图 */
   const [mode, setMode] = useState<'map' | 'album'>('map')
   const arriveTimerRef = useRef(0)
+  const stageRef = useRef<HTMLDivElement>(null)
+  const firstModeRef = useRef(true)
+
+  // 切换地图 / 相机页时把框顶带回视野，避免高度变化后读者不知道自己在哪
+  useEffect(() => {
+    if (firstModeRef.current) {
+      firstModeRef.current = false
+      return
+    }
+    stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [mode])
 
   const activeRef = useRef(active)
   const visitedRef = useRef(visited)
@@ -356,100 +367,98 @@ export function JourneyMap() {
     <Section page="第叁版 · Page 03" title={journey.title}>
       <p className="font-serif text-[12px] leading-relaxed text-ink-soft">{journey.intro}</p>
 
-      {/* 地图与相册页叠在同一格里：谁显示谁决定高度，翻页时不会上下堆叠 */}
-      <div className="mt-4 grid [perspective:1400px] *:col-start-1 *:row-start-1">
-        <motion.div
-          initial={false}
-          animate={
-            mode === 'map'
-              ? { opacity: 1, rotateY: 0, x: 0, display: 'block' }
-              : { opacity: 0, rotateY: -50, x: -16, display: 'none' }
-          }
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          style={{ transformOrigin: 'left center' }}
+      {/* 一个固定的框：顶栏、底栏在两种模式下位置不变，只有中间在"地图"与"相机页"之间切换 */}
+      <div ref={stageRef} className="mt-4 scroll-mt-3 border border-ink bg-paper">
+        <div className="flex items-baseline justify-between border-b border-rule px-3 py-2">
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={mode === 'album' ? `album-${active}` : walking ? `to-${target}` : `at-${active}`}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.25 }}
+              className={`font-mono text-[9px] tracking-[0.25em] ${mode === 'album' ? 'text-accent' : 'text-ink-faint'}`}
+            >
+              {mode === 'album'
+                ? city.date
+                : walking
+                  ? `两位当事人正在前往 ${cities[target].name}……`
+                  : `两位当事人在 ${city.name}`}
+            </motion.span>
+          </AnimatePresence>
+          <span className="shrink-0 font-mono text-[9px] tracking-[0.25em] text-ink-faint">
+            已到访 {visited.size} / {cities.length}
+          </span>
+        </div>
+
+        {/* 地图与相机页叠在同一格里：谁显示谁决定高度 */}
+        <div className="grid [perspective:1400px] *:col-start-1 *:row-start-1">
+          <motion.div
+            initial={false}
+            animate={
+              mode === 'map'
+                ? { opacity: 1, rotateY: 0, x: 0, display: 'block' }
+                : { opacity: 0, rotateY: -40, x: -16, display: 'none' }
+            }
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            style={{ transformOrigin: 'left center' }}
+          >
+            <div ref={wrapRef} className="relative w-full border-b border-rule">
+              <canvas
+                ref={canvasRef}
+                onClick={onCanvasClick}
+                data-map
+                className="block cursor-pointer [touch-action:manipulation]"
+              />
+              <div className="pointer-events-none absolute right-[1.6%] bottom-[2.4%] w-[10.4%] text-center font-mono text-[7px] leading-none tracking-[0.1em] text-ink-faint">
+                南海诸岛
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5 px-3 py-3">
+              {cities.map((c, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => goTo(idx)}
+                  className={`border px-2.5 py-1 font-serif text-[11px] tracking-[0.15em] whitespace-nowrap ${
+                    idx === active && !walking
+                      ? 'border-ink bg-ink text-paper'
+                      : idx === home
+                        ? 'border-rose text-ink'
+                        : visited.has(idx)
+                          ? 'border-ink-soft text-ink'
+                          : 'border-rule text-ink-soft'
+                  }`}
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+
+          <AnimatePresence>
+            {mode === 'album' && (
+              <CityAlbum
+                key={active}
+                city={city}
+                stop={active + 1}
+                lightboxOpen={lightbox !== null}
+                onOpen={setLightbox}
+              />
+            )}
+          </AnimatePresence>
+        </div>
+
+        <button
+          type="button"
+          disabled={mode === 'map' && walking}
+          onClick={() => setMode(mode === 'map' ? 'album' : 'map')}
+          className="flex w-full items-center justify-between border-t border-ink px-3 py-2.5 font-serif text-[12px] tracking-[0.15em] active:bg-paper-deep disabled:text-ink-faint"
         >
-          <div ref={wrapRef} className="relative w-full border border-ink">
-            <canvas
-              ref={canvasRef}
-              onClick={onCanvasClick}
-              data-map
-              className="block cursor-pointer [touch-action:manipulation]"
-            />
-            <div className="pointer-events-none absolute top-2 left-2 border border-ink bg-paper px-2 py-1 font-mono text-[9px] tracking-[0.25em]">
-              足迹图
-            </div>
-            <div className="pointer-events-none absolute right-[1.6%] bottom-[2.4%] w-[10.4%] text-center font-mono text-[7px] leading-none tracking-[0.1em] text-ink-faint">
-              南海诸岛
-            </div>
-          </div>
-
-          <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            {cities.map((c, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => goTo(idx)}
-                className={`border px-2.5 py-1 font-serif text-[11px] tracking-[0.15em] whitespace-nowrap ${
-                  idx === active && !walking
-                    ? 'border-ink bg-ink text-paper'
-                    : idx === home
-                      ? 'border-rose text-ink'
-                      : visited.has(idx)
-                        ? 'border-ink-soft text-ink'
-                        : 'border-rule text-ink-soft'
-                }`}
-              >
-                {c.name}
-              </button>
-            ))}
-          </div>
-
-          <div className="rule mt-3 flex items-baseline justify-between border-t border-b py-2">
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={walking ? `to-${target}` : `at-${active}`}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.25 }}
-                className="font-mono text-[10px] tracking-[0.2em] text-ink-faint"
-              >
-                {walking ? (
-                  <>两位当事人正在前往 {cities[target].name}……</>
-                ) : (
-                  <>
-                    两位当事人在 {city.name}。
-                    <button
-                      type="button"
-                      onClick={() => setMode('album')}
-                      className="ml-1 border-b border-ink text-ink"
-                    >
-                      翻开这一页 →
-                    </button>
-                  </>
-                )}
-              </motion.p>
-            </AnimatePresence>
-            <span className="shrink-0 font-mono text-[9px] tracking-[0.25em] text-ink-faint">
-              {visited.size} / {cities.length}
-            </span>
-          </div>
-        </motion.div>
-
-        <AnimatePresence>
-          {mode === 'album' && (
-            <CityAlbum
-              key={active}
-              city={city}
-              stop={active + 1}
-              visited={visited.size}
-              total={cities.length}
-              lightboxOpen={lightbox !== null}
-              onBack={() => setMode('map')}
-              onOpen={setLightbox}
-            />
-          )}
-        </AnimatePresence>
+          <span>{mode === 'map' ? (walking ? '到站后自动翻开这一页' : `翻开 ${city.name} 这一页 →`) : '← 回到地图，去下一站'}</span>
+          <span className="font-mono text-[9px] tracking-[0.2em] text-ink-faint">还有 {cities.length - visited.size} 站</span>
+        </button>
       </div>
 
       <Lightbox
