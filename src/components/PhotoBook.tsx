@@ -16,8 +16,9 @@ type Props = {
   onOpen: (index: number) => void
 }
 
-const TURN = 1.05
-const ease = [0.65, 0, 0.3, 1] as const
+const TURN = 1.0
+/** 起手快、落下慢，像手指一挑再让纸自己落下 */
+const ease = [0.3, 0.1, 0.2, 1] as const
 
 function buildPages(city: City): Page[] {
   const photos = city.photos ?? []
@@ -82,7 +83,7 @@ export function PhotoBook({ city, stop, interval = 3800, paused = false, onOpen 
       <div className="[perspective:1000px]">
         <motion.div
           ref={bookRef}
-          className="relative mx-auto w-[90%] [transform-style:preserve-3d]"
+          className="relative mx-auto w-[90%]"
           style={{ rotateX: 22, rotateZ: -1.5 }}
           drag="x"
           dragConstraints={{ left: 0, right: 0 }}
@@ -110,15 +111,16 @@ export function PhotoBook({ city, stop, interval = 3800, paused = false, onOpen 
             </div>
           ))}
 
-          {/* 页面区：两页对开，总比例 3:2 */}
-          <div className="relative aspect-[3/2] w-full [transform-style:preserve-3d]">
+          {/* 页面区：两页对开，总比例 3:2。每张纸各自在自己的透视里转，转完按 z-index 叠放，避免同一平面互相穿透 */}
+          <div className="relative aspect-[3/2] w-full">
             {Array.from({ length: leafCount }, (_, j) => (
               <Leaf
                 key={j}
                 front={pages[2 * j - 1]}
                 back={pages[2 * j]}
                 turned={j < turned}
-                zIndex={j < turned ? j + 1 : leafCount - j + 1}
+                turnedZ={j + 1}
+                unturnedZ={leafCount - j + 1}
                 delay={rewindFrom ? Math.max(0, rewindFrom - 1 - j) * 0.09 : 0}
                 city={city}
                 stop={stop}
@@ -187,7 +189,9 @@ type LeafProps = {
   front?: Page
   back?: Page
   turned: boolean
-  zIndex: number
+  /** 翻到左边后 / 还在右边时的层级：左边越晚翻的越上面，右边越早翻的越上面 */
+  turnedZ: number
+  unturnedZ: number
   delay: number
   city: City
   stop: number
@@ -195,7 +199,7 @@ type LeafProps = {
   onTap: () => void
 }
 
-function Leaf({ front, back, turned, zIndex, delay, city, stop, pageNo, onTap }: LeafProps) {
+function Leaf({ front, back, turned, turnedZ, unturnedZ, delay, city, stop, pageNo, onTap }: LeafProps) {
   const rot = useMotionValue(turned ? -180 : 0)
   useEffect(() => {
     const target = turned ? -180 : 0
@@ -204,29 +208,35 @@ function Leaf({ front, back, turned, zIndex, delay, city, stop, pageNo, onTap }:
     return () => ctrl.stop()
   }, [turned, rot, delay])
 
-  // 翻到一半时纸面最暗；正在翻的那张压在所有页之上
+  // 翻到一半时纸面最暗；层级完全由当前角度决定，正在翻的那张压在所有页之上，
+  // 这样状态切换的那一帧不会先掉到下面去闪一下
   const shade = useTransform(rot, [-180, -90, 0], [0, 0.42, 0])
   const backShade = useTransform(rot, [-180, -90, 0], [0.06, 0.42, 0])
-  const z = useTransform(rot, (v) => (v > -179.5 && v < -0.5 ? 99 : zIndex))
+  const z = useTransform(rot, (v) => (v <= -179.5 ? turnedZ : v >= -0.5 ? unturnedZ : 99))
 
   return (
     <motion.div
-      style={{ rotateY: rot, zIndex: z, transformOrigin: 'left center' }}
-      className="absolute top-0 bottom-0 left-1/2 w-1/2 cursor-pointer [transform-style:preserve-3d]"
-      onTap={onTap}
+      style={{ zIndex: z, perspective: 1400, perspectiveOrigin: '0% 50%' }}
+      className="absolute top-0 bottom-0 left-1/2 w-1/2"
     >
-      {/* 正面：右页 */}
-      <div className="absolute inset-0 overflow-hidden bg-paper [backface-visibility:hidden]">
-        <PageFace page={front} side="right" city={city} stop={stop} no={pageNo[1]} />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(43,42,39,0.16),rgba(43,42,39,0)_14%)]" />
-        <motion.div style={{ opacity: shade }} className="pointer-events-none absolute inset-0 bg-ink" />
-      </div>
-      {/* 背面：翻过去以后的左页 */}
-      <div className="absolute inset-0 overflow-hidden bg-paper [backface-visibility:hidden] [transform:rotateY(180deg)]">
-        <PageFace page={back} side="left" city={city} stop={stop} no={pageNo[0]} />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(270deg,rgba(43,42,39,0.16),rgba(43,42,39,0)_14%)]" />
-        <motion.div style={{ opacity: backShade }} className="pointer-events-none absolute inset-0 bg-ink" />
-      </div>
+      <motion.div
+        style={{ rotateY: rot, transformOrigin: 'left center' }}
+        className="absolute inset-0 cursor-pointer will-change-transform [transform-style:preserve-3d]"
+        onTap={onTap}
+      >
+        {/* 正面：右页 */}
+        <div className="absolute inset-0 overflow-hidden bg-paper [backface-visibility:hidden]">
+          <PageFace page={front} side="right" city={city} stop={stop} no={pageNo[1]} />
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(43,42,39,0.16),rgba(43,42,39,0)_14%)]" />
+          <motion.div style={{ opacity: shade }} className="pointer-events-none absolute inset-0 bg-ink" />
+        </div>
+        {/* 背面：翻过去以后的左页 */}
+        <div className="absolute inset-0 overflow-hidden bg-paper [backface-visibility:hidden] [transform:rotateY(180deg)]">
+          <PageFace page={back} side="left" city={city} stop={stop} no={pageNo[0]} />
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(270deg,rgba(43,42,39,0.16),rgba(43,42,39,0)_14%)]" />
+          <motion.div style={{ opacity: backShade }} className="pointer-events-none absolute inset-0 bg-ink" />
+        </div>
+      </motion.div>
     </motion.div>
   )
 }
