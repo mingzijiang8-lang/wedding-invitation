@@ -55,7 +55,7 @@ public/
 
    同一个城市可以出现多次。`cities.ts` 里没有的城市，加上 `lng`、`lat` 两个字段即可（WGS84 坐标，精确到城区就行）。地图范围是东经 73°～147°、北纬 17.5°～54°，覆盖全国以及日本、朝鲜半岛、蒙古、中南半岛北部，出了这个范围的城市不会显示。城市越多两人走完全程的时间越长，目前每段路大约 2～5 秒。
 4. **高德坐标**：在 [高德坐标拾取器](https://lbs.amap.com/tools/picker) 搜酒店名，把经纬度填到 `wedding.lng` / `wedding.lat`。
-5. **背景音乐**：放一个 `public/music.mp3`，注意版权，建议 2MB 以内。
+5. **背景音乐**：放一个 `public/music.mp3`，注意版权，建议 2MB 以内。当前用的是 Kevin MacLeod 的 *In Your Arms*（incompetech.com，CC BY 4.0，末版已署名）。想换：把候选 mp3 放到 `/tmp/music/`，`node scripts/music.mjs preview` 生成试听页，选好后 `node scripts/music.mjs use "曲名"`。
 6. **分享缩略图**：放一个 `public/share.jpg`。微信会读取 `index.html` 里的 `<title>` 和 `<meta name="description">` 作为卡片标题和描述，缩略图默认抓页面第一张够大的图，`index.html` 里已经放了一个隐藏的 `<img src="/share.jpg">` 引导它。
 7. **字体（可选）**：目前用系统衬线字体（iOS 上是宋体，安卓会退化为黑体）。想统一效果可以用 [cn-font-split](https://github.com/KonghaYao/cn-font-split) 给"思源宋体"做子集化，放到 `public/fonts/`，在 `src/index.css` 里加 `@font-face` 并把 `--font-serif` 指过去。
 

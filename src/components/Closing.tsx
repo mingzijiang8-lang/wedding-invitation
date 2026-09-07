@@ -1,4 +1,4 @@
-import { closing, paper } from '../content'
+import { closing, music, paper } from '../content'
 import { Couple } from '../pixel/Character'
 import { Section } from './Section'
 
@@ -32,6 +32,7 @@ export function Closing({ edition }: Props) {
         <div>
           {paper.nameEn} · NO. {String(edition).padStart(3, '0')}
         </div>
+        {music.credit && <div className="mt-2 text-[8px] tracking-[0.1em] opacity-70">{music.credit}</div>}
       </footer>
     </Section>
   )

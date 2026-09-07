@@ -264,5 +264,6 @@ export const closing = {
 export const music = {
   /** 放在 public/music.mp3；不存在则自动隐藏播放按钮 */
   src: '/music.mp3',
-  title: 'Background Music',
+  /** 末版页脚的署名（CC BY 曲目需要）；换成自备音乐可留空 */
+  credit: 'Music: "In Your Arms" Kevin MacLeod (incompetech.com) · CC BY 4.0',
 }
