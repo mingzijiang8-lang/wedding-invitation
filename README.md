@@ -82,6 +82,17 @@ curl -sL -o /tmp/world.json "https://raw.githubusercontent.com/johan/world.geo.j
 node scripts/build-china-bitmap.mjs /tmp/china.json /tmp/world.json
 ```
 
+## 换一台相机（足迹页的机背照片）
+
+`public/camera-back.webp` 是 Unsplash 上的一张机背实拍（[Unsplash License](https://unsplash.com/license)，可自由使用），用脚本抠掉背景、逆时针转成竖持姿态：
+
+```bash
+node scripts/cutout-camera.mjs 原图.jpg public/camera-back.png 72   # 最后一个参数是背景亮度阈值
+cwebp -q 82 -alpha_q 90 public/camera-back.png -o public/camera-back.webp
+```
+
+换图后要在 `src/components/CameraBack.tsx` 里重新量 `LCD`（屏幕区的百分比位置）和 `KEYS`（各按键中心点）。
+
 ## 本地截图检查
 
 `scripts/shot.mjs` 会用本机 Chrome 以 iPhone 尺寸打开页面并逐屏截图到 `shots/`，方便改完文案后快速过一遍：
