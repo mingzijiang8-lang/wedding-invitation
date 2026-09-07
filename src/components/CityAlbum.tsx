@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import type { City } from '../content'
-import { PhotoBook } from './PhotoBook'
+import { CameraBack } from './CameraBack'
 
 type Props = {
   city: City
@@ -14,7 +14,7 @@ type Props = {
 
 const ease = [0.22, 1, 0.36, 1] as const
 
-/** 到站后盖在地图位置上的一页：一本摊开、自己翻页的相册 + 这一站的一段故事 */
+/** 到站后盖在地图位置上的一页：记者的相机（照片在里面回放）+ 这一站的一段故事 */
 export function CityAlbum({ city, stop, visited, total, lightboxOpen, onBack, onOpen }: Props) {
   return (
     <motion.article
@@ -32,11 +32,8 @@ export function CityAlbum({ city, stop, visited, total, lightboxOpen, onBack, on
         </span>
       </div>
 
-      <div className="relative border-b border-rule bg-paper-deep/70 px-3 pt-8 pb-4">
-        <span className="pointer-events-none absolute top-2 right-3 font-mono text-[8px] tracking-[0.2em] text-ink-faint">
-          点页面或左右滑动翻页
-        </span>
-        <PhotoBook city={city} stop={stop} paused={lightboxOpen} onOpen={onOpen} />
+      <div className="relative border-b border-rule bg-paper-deep/70 px-4 pt-5 pb-6">
+        <CameraBack city={city} stop={stop} paused={lightboxOpen} onOpen={onOpen} />
       </div>
 
       <div className="px-4 pt-4">

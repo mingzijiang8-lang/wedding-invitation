@@ -1,4 +1,4 @@
-// 核对到站相册页：node scripts/shot-album.mjs
+// 核对到站相机页：node scripts/shot-album.mjs
 import { chromium, devices } from 'playwright'
 import { mkdirSync } from 'node:fs'
 
@@ -17,15 +17,11 @@ await page.locator('article').first().evaluate((el) => el.scrollIntoView({ block
 await page.waitForTimeout(600)
 await page.screenshot({ path: 'shots/album-1-open.png' })
 
-// 自动翻页：3.8s 后开始，翻一页 1.05s
-await page.waitForTimeout(3800 + 450)
-await page.screenshot({ path: 'shots/album-2-turning.png' })
-await page.waitForTimeout(900)
-await page.screenshot({ path: 'shots/album-3-spread2.png' })
-
-await page.getByRole('button', { name: '下一页' }).tap()
-await page.waitForTimeout(1400)
-await page.screenshot({ path: 'shots/album-4-spread3.png' })
+await page.getByRole('button', { name: '下一张' }).first().tap()
+await page.waitForTimeout(200)
+await page.screenshot({ path: 'shots/album-2-af.png' })
+await page.waitForTimeout(700)
+await page.screenshot({ path: 'shots/album-3-next.png' })
 
 await page.getByRole('button', { name: /回到地图/ }).tap()
 await page.waitForTimeout(700)
@@ -33,5 +29,5 @@ await page.getByRole('button', { name: '厦门', exact: true }).tap()
 await page.waitForTimeout(2600)
 await page.locator('article').first().evaluate((el) => el.scrollIntoView({ block: 'start' }))
 await page.waitForTimeout(400)
-await page.screenshot({ path: 'shots/album-5-xiamen.png' })
+await page.screenshot({ path: 'shots/album-4-xiamen.png' })
 await browser.close()
