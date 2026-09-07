@@ -1,11 +1,12 @@
 import { AnimatePresence, motion, useInView } from 'framer-motion'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { City } from '../content'
+import { photoNote, photoSrc, type CaptionStyle, type City } from '../content'
 import { Couple } from '../pixel/Character'
 
 type Props = {
   city: City
   stop: number
+  captionStyle: CaptionStyle
   interval?: number
   paused?: boolean
   onOpen: (index: number) => void
@@ -28,10 +29,13 @@ const KEYS = {
 /**
  * 记者的相机（实拍机背，竖持）。照片在 LCD 里回放，多重选择器上下翻，OK / ▶ 看大图。
  */
-export function CameraBack({ city, stop, interval = 4200, paused = false, onOpen }: Props) {
-  const photos = city.photos ?? []
+export function CameraBack({ city, stop, captionStyle, interval = 4200, paused = false, onOpen }: Props) {
+  const photos = (city.photos ?? []).map(photoSrc)
+  const notes = (city.photos ?? []).map(photoNote)
   const n = photos.length
+  const hasAnyNote = notes.some(Boolean)
   const [index, setIndex] = useState(0)
+  const note = notes[index]
   const [afTick, setAfTick] = useState(0)
   const [resting, setResting] = useState(false)
   const restTimer = useRef(0)
@@ -150,6 +154,37 @@ export function CameraBack({ city, stop, interval = 4200, paused = false, onOpen
                 className="absolute top-1/2 left-1/2 h-[16%] w-[20%] -translate-x-1/2 -translate-y-1/2 border-[1.5px]"
               />
             )}
+            {/* 照片的 note：两种放在屏幕里的样式 */}
+            <AnimatePresence mode="wait">
+              {note && captionStyle === 'lcd-bar' && (
+                <motion.div
+                  key={`bar-${index}`}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25, delay: 0.15 }}
+                  className="absolute inset-x-0 bottom-[16%] bg-[linear-gradient(90deg,rgba(0,0,0,0.72),rgba(0,0,0,0.55))] px-2.5 py-1.5"
+                >
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="shrink-0 text-[6px] text-[#ffd479]">MEMO</span>
+                    <span className="font-serif text-[9.5px] leading-snug tracking-[0.06em] [text-shadow:none]">{note}</span>
+                  </div>
+                </motion.div>
+              )}
+              {note && captionStyle === 'subtitle' && (
+                <motion.div
+                  key={`sub-${index}`}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, transition: { duration: 0.12 } }}
+                  transition={{ duration: 0.4, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                  className="absolute inset-x-[12%] bottom-[16%] text-center font-serif text-[10px] leading-snug tracking-[0.12em] text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.95),0_0_12px_rgba(0,0,0,0.6)]"
+                >
+                  {note}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* 幻灯片进度：自动播放时从左到右走完一格 */}
             {autoplay && (
               <motion.div
@@ -175,12 +210,66 @@ export function CameraBack({ city, stop, interval = 4200, paused = false, onOpen
         <HotKey at={KEYS.info} label="信息" onClick={rest} size={6} />
       </div>
 
+      {/* 照片的 note：两种放在相机下方纸面上的样式。只要这一站有任何一张带 note，就固定留出这一行，避免翻到没字的那张时高度跳动 */}
+      {hasAnyNote && captionStyle === 'cutline' && (
+        <div className="flex min-h-[46px] items-start gap-2 border-b border-rule px-3 pt-2.5 pb-2">
+          <span className="mt-[2px] shrink-0 border border-ink px-1 py-px font-mono text-[7px] tracking-[0.15em]">
+            图 {index + 1}
+          </span>
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={index}
+              initial={{ opacity: 0, x: 6 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -6 }}
+              transition={{ duration: 0.22 }}
+              className={`font-serif text-[12px] leading-[1.6] ${note ? 'text-ink' : 'text-ink-faint'}`}
+            >
+              {note ?? '（这一张没有配文。）'}
+            </motion.p>
+          </AnimatePresence>
+        </div>
+      )}
+      {hasAnyNote && captionStyle === 'print' && (
+        <div className="px-3 pt-3 pb-1">
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, rotate: -1.5, y: 4 }}
+            animate={{ opacity: 1, rotate: index % 2 ? 0.6 : -0.8, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="relative flex min-h-[54px] items-center justify-between gap-3 bg-white px-3 py-2 shadow-[0_1px_2px_rgba(0,0,0,0.12),0_4px_10px_rgba(0,0,0,0.08)]"
+          >
+            <span className={`font-serif text-[12px] leading-[1.6] tracking-[0.04em] ${note ? 'text-[#3a3a38]' : 'text-ink-faint'}`}>
+              {note ?? '⋯'}
+            </span>
+            <span className="shrink-0 font-mono text-[9px] tracking-[0.1em] text-[#e07a2a] [text-shadow:0_0_4px_rgba(224,122,42,0.55)]">
+              {filmDate(city.date)} · {index + 1}
+            </span>
+          </motion.div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between px-3 py-2 font-mono text-[7px] tracking-[0.3em] text-ink-faint">
         <span>PRESS · 本报记者用机 · No.{String(stop).padStart(3, '0')}</span>
         <span>{n > 1 ? '拨盘 ▲▼ 翻看 · OK 放大' : n === 1 ? 'OK 放大' : 'NO CARD'}</span>
       </div>
     </div>
   )
+}
+
+/** 把「二〇二六年十月六日」压成胶片日期戳那种 '26 10 6 */
+function filmDate(label: string) {
+  const digit: Record<string, string> = { 〇: '0', 一: '1', 二: '2', 三: '3', 四: '4', 五: '5', 六: '6', 七: '7', 八: '8', 九: '9', 十: '10' }
+  const m = label.match(/([〇一二三四五六七八九]{4})年(.+?)月(?:(.+?)日)?/)
+  if (!m) return label.replace(/[（）()]/g, '')
+  const year = [...m[1]].map((c) => digit[c]).join('').slice(2)
+  const cn = (s: string) => {
+    if (s === '十') return 10
+    const [a, b] = s.split('十')
+    if (b === undefined) return Number(digit[a] ?? 0)
+    return (a ? Number(digit[a]) : 1) * 10 + (b ? Number(digit[b]) : 0)
+  }
+  return `'${year} ${cn(m[2])}${m[3] ? ` ${cn(m[3])}` : ''}`
 }
 
 function HotKey({

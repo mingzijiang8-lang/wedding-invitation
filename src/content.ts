@@ -107,12 +107,29 @@ export type City = {
   date: string
   title: string
   text: string
-  /** 放在 public/photos/ 下，任意 jpg/png；到站后摊成一叠自动翻，点击看大图 */
-  photos?: string[]
+  /**
+   * 放在 public/photos/ 下，任意 jpg/png；到站后在相机 LCD 里回放，点击看大图。
+   * 直接写路径，或写成 { src, note } 给这一张附一句当时的状态；note 可有可无。
+   */
+  photos?: Photo[]
 }
+
+export type Photo = string | { src: string; note?: string }
+export const photoSrc = (p: Photo) => (typeof p === 'string' ? p : p.src)
+export const photoNote = (p: Photo) => (typeof p === 'string' ? undefined : p.note)
+
+/**
+ * 每张照片那句 note 的呈现方式（四选一，开发预览时页面左下角可以随时切换对比）：
+ *  lcd-bar  机内信息条：LCD 底部一条半透明黑条，等宽小字，像相机自己显示的拍摄信息
+ *  subtitle 电影字幕：LCD 底部居中的宋体白字，不带底条，淡入上浮
+ *  cutline  报纸图说：相机下方，【图 1/4】+ 一句话，和整张报纸同一套排版
+ *  print    相纸手记：相机下方一张略斜的白色相纸条，像在照片背面写的一行字，右侧有胶片日期戳
+ */
+export type CaptionStyle = 'lcd-bar' | 'subtitle' | 'cutline' | 'print'
 
 export const journey = {
   title: '足迹',
+  captionStyle: 'lcd-bar' as CaptionStyle,
   intro: '本报整理了两人这些年一起去过的地方。点击任一城市，两位当事人会从所在之处走过去；到站后翻开那一页，读当地的简讯、看照片，看完再回到地图出发。',
   /**
    * 城市不分先后，两人一开始站在婚礼城市（名字与 wedding.city 相同的那一站），点哪里就从当前位置走过去。
@@ -225,10 +242,10 @@ export const journey = {
       date: wedding.dateLabel,
       title: '婚礼',
       text: `走了这么多地方，最后回到这里。${wedding.dateLabel}晚上，${wedding.venue}，两人的故事在此停一下，等你来续。赴宴细节请见第四版。`,      photos: [
-        '/photos/zhangzhou-01.jpg',
+        { src: '/photos/zhangzhou-01.jpg', note: '拍这张的时候风很大，头纱飞了三次。' },
         '/photos/zhangzhou-02.jpg',
-        '/photos/zhangzhou-03.jpg',
-        '/photos/zhangzhou-04.jpg',
+        { src: '/photos/zhangzhou-03.jpg', note: '摄影师说"看远处"，其实远处什么都没有。' },
+        { src: '/photos/zhangzhou-04.jpg', note: '收工前最后一张，两个人都饿了。' },
       ],
     },
   ] as City[],

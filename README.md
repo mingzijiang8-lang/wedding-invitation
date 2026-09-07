@@ -48,10 +48,15 @@ public/
      date: '二〇一九年十月',
      title: '第一次一起旅行',
      text: '排了两个小时的火锅……',
-     photos: ['/photos/cd-1.jpg', '/photos/cd-2.jpg'],   // 可选，可以放多张
+     photos: [                    // 可选，可以放多张
+       '/photos/cd-1.jpg',
+       { src: '/photos/cd-2.jpg', note: '排完队已经饿到说不出话。' },   // 想给某一张配一句就写成对象，note 可有可无
+     ],
      label: 'left',               // 可选，城市名画在地标的哪一侧（left/right/top/bottom），用来避开重叠
    }
    ```
+
+   照片那句 `note` 有四种呈现方式（机内信息条 / 电影字幕 / 报纸图说 / 相纸手记），在 `journey.captionStyle` 里选。开发预览时页面左下角有个小面板可以随时切换对比，线上版加 `?pick` 参数也能看到。
 
    同一个城市可以出现多次。`cities.ts` 里没有的城市，加上 `lng`、`lat` 两个字段即可（WGS84 坐标，精确到城区就行）。地图范围是东经 73°～147°、北纬 17.5°～54°，覆盖全国以及日本、朝鲜半岛、蒙古、中南半岛北部，出了这个范围的城市不会显示。城市越多两人走完全程的时间越长，目前每段路大约 2～5 秒。
 4. **高德坐标**：在 [高德坐标拾取器](https://lbs.amap.com/tools/picker) 搜酒店名，把经纬度填到 `wedding.lng` / `wedding.lat`。

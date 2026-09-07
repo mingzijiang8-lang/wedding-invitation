@@ -1,9 +1,11 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { journey, wedding, type City } from '../content'
+import { journey, photoNote, photoSrc, wedding, type City } from '../content'
 import { CHINA_BITMAP, CHINA_COLS, CHINA_ROWS, project } from '../map/chinaBitmap'
 import { CITY_COORDS } from '../map/cities'
 import { drawFrame, frameSrc, loadFrame, preloadAll, WALK_FPS } from '../pixel/characters'
+import { useCaptionStyle } from './captionStyle'
+import { CaptionStylePicker } from './CaptionStylePicker'
 import { CityAlbum } from './CityAlbum'
 import { Lightbox } from './Lightbox'
 import { Section } from './Section'
@@ -138,6 +140,7 @@ export function JourneyMap() {
   const [lightbox, setLightbox] = useState<number | null>(null)
   /** map：看地图选目的地；album：到站后相册页盖住地图 */
   const [mode, setMode] = useState<'map' | 'album'>('map')
+  const [captionStyle, setCaptionStyle] = useCaptionStyle()
   const arriveTimerRef = useRef(0)
   const stageRef = useRef<HTMLDivElement>(null)
   const firstModeRef = useRef(true)
@@ -443,6 +446,7 @@ export function JourneyMap() {
                 key={active}
                 city={city}
                 stop={active + 1}
+                captionStyle={captionStyle}
                 lightboxOpen={lightbox !== null}
                 onOpen={setLightbox}
               />
@@ -462,11 +466,13 @@ export function JourneyMap() {
       </div>
 
       <Lightbox
-        photos={city.photos ?? []}
+        photos={(city.photos ?? []).map(photoSrc)}
+        notes={(city.photos ?? []).map(photoNote)}
         index={lightbox}
         onChange={setLightbox}
         onClose={() => setLightbox(null)}
       />
+      <CaptionStylePicker value={captionStyle} onChange={setCaptionStyle} />
     </Section>
   )
 }

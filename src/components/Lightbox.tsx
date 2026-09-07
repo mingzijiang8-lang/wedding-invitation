@@ -3,6 +3,8 @@ import { useCallback, useEffect } from 'react'
 
 type Props = {
   photos: string[]
+  /** 与 photos 对应的一句配文，可缺 */
+  notes?: (string | undefined)[]
   /** 当前索引；为 null 时关闭 */
   index: number | null
   onChange: (index: number) => void
@@ -10,7 +12,7 @@ type Props = {
 }
 
 /** 手机上的全屏看图：左右滑动切换，点空白处或右上角关闭 */
-export function Lightbox({ photos, index, onChange, onClose }: Props) {
+export function Lightbox({ photos, notes, index, onChange, onClose }: Props) {
   const open = index !== null
 
   useEffect(() => {
@@ -82,7 +84,22 @@ export function Lightbox({ photos, index, onChange, onClose }: Props) {
             </AnimatePresence>
           </div>
 
-          <div className="flex items-center justify-center gap-1.5 pt-3 pb-[max(20px,env(safe-area-inset-bottom))]">
+          <div className="min-h-[36px] px-8 pt-3 text-center font-serif text-[13px] leading-relaxed tracking-[0.06em] text-paper/85">
+            <AnimatePresence mode="wait">
+              {notes?.[index] && (
+                <motion.p
+                  key={index}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {notes[index]}
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </div>
+          <div className="flex items-center justify-center gap-1.5 pt-2 pb-[max(20px,env(safe-area-inset-bottom))]">
             {photos.map((p, i) => (
               <span key={p} className={`h-1 rounded-full transition-all ${i === index ? 'w-4 bg-paper' : 'w-1 bg-paper/40'}`} />
             ))}
