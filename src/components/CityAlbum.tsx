@@ -1,41 +1,21 @@
-import { AnimatePresence, motion } from 'framer-motion'
-import { useState } from 'react'
+import { motion } from 'framer-motion'
 import type { City } from '../content'
-import { Photo } from '../pixel/Photo'
+import { PhotoStack } from './PhotoStack'
 
 type Props = {
   city: City
   visited: number
   total: number
+  lightboxOpen: boolean
   onBack: () => void
   onOpen: (index: number) => void
 }
 
 const ease = [0.22, 1, 0.36, 1] as const
 
-/** 翻页：向后翻时当前页绕左边缘合上，露出下一页；向前翻时上一页从左边缘翻回来 */
-const pageVariants = {
-  enter: (d: number) =>
-    d > 0 ? { rotateY: 0, opacity: 1, scale: 0.985, zIndex: 1 } : { rotateY: -90, opacity: 0.4, scale: 1, zIndex: 2 },
-  center: { rotateY: 0, opacity: 1, scale: 1, zIndex: 1 },
-  exit: (d: number) =>
-    d > 0 ? { rotateY: -90, opacity: 0.4, scale: 1, zIndex: 2 } : { rotateY: 0, opacity: 0, scale: 0.985, zIndex: 1 },
-}
-
-/** 到站后覆盖在地图位置上的"相册页"：左边是可翻页的照片，右边是日期与标题，下面是这一站的故事 */
-export function CityAlbum({ city, visited, total, onBack, onOpen }: Props) {
+/** 到站后盖在地图位置上的一页：摊开的一叠照片 + 这一站的一段故事 */
+export function CityAlbum({ city, visited, total, lightboxOpen, onBack, onOpen }: Props) {
   const photos = city.photos ?? []
-  const n = photos.length
-  const [page, setPage] = useState(0)
-  const [dir, setDir] = useState(1)
-
-  const flip = (d: number) => {
-    if (n <= 1) return
-    setDir(d)
-    setPage((p) => (p + d + n) % n)
-  }
-
-  const caption = city.photoCaptions?.[page]
 
   return (
     <motion.article
@@ -53,81 +33,24 @@ export function CityAlbum({ city, visited, total, onBack, onOpen }: Props) {
         </span>
       </div>
 
-      <div className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-4 px-3 pt-4">
-        <div className="relative aspect-[3/4] [perspective:1200px]">
-          {n === 0 ? (
-            <Photo size="small" className="h-full w-full [aspect-ratio:auto]" />
-          ) : (
-            <AnimatePresence initial={false} custom={dir}>
-              <motion.div
-                key={page}
-                custom={dir}
-                variants={pageVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.55, ease }}
-                style={{ transformOrigin: 'left center', backfaceVisibility: 'hidden' }}
-                drag={n > 1 ? 'x' : false}
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={0.15}
-                dragSnapToOrigin
-                onDragEnd={(_, info) => {
-                  if (info.offset.x < -40) flip(1)
-                  else if (info.offset.x > 40) flip(-1)
-                }}
-                onTap={() => onOpen(page)}
-                className="absolute inset-0 cursor-pointer border border-rule bg-paper p-1.5 shadow-[3px_4px_0_rgba(43,42,39,0.12)]"
-              >
-                <img
-                  src={photos[page]}
-                  alt=""
-                  draggable={false}
-                  className="pointer-events-none h-full w-full object-cover"
-                />
-                <span className="pointer-events-none absolute right-2.5 bottom-2.5 border border-paper/60 bg-ink/70 px-1.5 py-0.5 font-mono text-[8px] tracking-[0.2em] text-paper">
-                  {page + 1} / {n}
-                </span>
-              </motion.div>
-            </AnimatePresence>
-          )}
-        </div>
-
-        <div className="flex min-w-0 flex-col">
-          <h3 className="font-serif text-[17px] leading-snug font-semibold">
-            {city.name}
-            {city.title && city.title !== city.name && (
-              <span className="mt-0.5 block text-[13px] font-normal text-ink-soft">{city.title}</span>
-            )}
-          </h3>
-          <div className="rule mt-3 border-t pt-2 font-serif text-[11px] leading-relaxed text-ink-soft">
-            {n === 0 ? '这一站的照片还在冲印中。' : caption ?? `第 ${page + 1} 张，共 ${n} 张。`}
-          </div>
-          {n > 1 && (
-            <div className="mt-auto flex items-center gap-1 pt-3">
-              <button
-                type="button"
-                onClick={() => flip(-1)}
-                aria-label="上一张"
-                className="h-7 w-7 border border-rule font-mono text-[12px] text-ink-soft active:bg-paper-deep"
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                onClick={() => flip(1)}
-                aria-label="下一张"
-                className="h-7 w-7 border border-rule font-mono text-[12px] text-ink-soft active:bg-paper-deep"
-              >
-                ›
-              </button>
-              <span className="ml-1 font-mono text-[8px] tracking-[0.15em] text-ink-faint">左右滑动翻页</span>
-            </div>
-          )}
-        </div>
+      <div className="relative border-b border-rule bg-paper-deep/70 px-4 pt-7 pb-5">
+        <span className="pointer-events-none absolute top-2 right-3 font-mono text-[8px] tracking-[0.2em] text-ink-faint">
+          {photos.length > 1 ? '左右拨动 · 轻触看大图' : photos.length === 1 ? '轻触看大图' : '照片冲印中'}
+        </span>
+        <PhotoStack photos={photos} paused={lightboxOpen} onOpen={onOpen} />
       </div>
 
-      <p className="px-3 pt-4 font-serif text-[13px] leading-relaxed text-ink-soft">{city.text}</p>
+      <div className="px-4 pt-4">
+        <h3 className="font-serif text-[22px] leading-tight font-semibold tracking-[0.08em]">
+          {city.name}
+          {city.title && city.title !== city.name && (
+            <span className="ml-2 align-[3px] font-normal text-[12px] tracking-[0.2em] text-ink-soft">
+              {city.title}
+            </span>
+          )}
+        </h3>
+        <p className="mt-2.5 font-serif text-[13px] leading-[1.9] text-ink-soft">{city.text}</p>
+      </div>
 
       <button
         type="button"

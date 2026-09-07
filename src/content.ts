@@ -107,10 +107,8 @@ export type City = {
   date: string
   title: string
   text: string
-  /** 放在 public/photos/ 下，任意 jpg/png；到站后在相册页里左右翻页，点击看大图 */
+  /** 放在 public/photos/ 下，任意 jpg/png；到站后摊成一叠自动翻，点击看大图 */
   photos?: string[]
-  /** 与 photos 一一对应的短说明，可少于照片数，缺的那张只显示页码 */
-  photoCaptions?: string[]
 }
 
 export const journey = {
@@ -226,9 +224,7 @@ export const journey = {
       label: 'bottom',
       date: wedding.dateLabel,
       title: '婚礼',
-      text: `走了这么多地方，最后回到这里。${wedding.dateLabel}晚上，${wedding.venue}，两人的故事在此停一下，等你来续。赴宴细节请见第四版。`,
-      photoCaptions: ['潮水退去之前。', '先别松手。', '同一片天空下。', '等花开的那一刻。'],
-      photos: [
+      text: `走了这么多地方，最后回到这里。${wedding.dateLabel}晚上，${wedding.venue}，两人的故事在此停一下，等你来续。赴宴细节请见第四版。`,      photos: [
         '/photos/zhangzhou-01.jpg',
         '/photos/zhangzhou-02.jpg',
         '/photos/zhangzhou-03.jpg',

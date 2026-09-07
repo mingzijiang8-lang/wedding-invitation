@@ -443,6 +443,7 @@ export function JourneyMap() {
               city={city}
               visited={visited.size}
               total={cities.length}
+              lightboxOpen={lightbox !== null}
               onBack={() => setMode('map')}
               onOpen={setLightbox}
             />
